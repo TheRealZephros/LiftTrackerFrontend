@@ -1,31 +1,48 @@
 import React from 'react'
 import logo from "./logo.png"
+import { Link } from 'react-router-dom';
+import { useAuth } from '../../Context/useAuth';
 
 interface NavbarProps {
 
 }
 
 const Navbar = () => {
+  const {isLoggedIn, user, logout} = useAuth();
   return (
-     <nav className="relative container mx-auto p-6">
+     <nav className="relative container mx-auto p-6 bg-gray-800 shadow-md rounded mb-6">
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-20">
-          <img src={logo} alt="" />
+            <Link to="/">
+                <img src={logo} alt="" height="40" width="40" />
+            </Link>
           <div className="hidden font-bold lg:flex">
-            <a href="" className="text-black hover:text-darkBlue">
-              Dashboard
-            </a>
+            <Link to="/search" className="text-white hover:text-darkBlue">
+              Search
+            </Link>
           </div>
         </div>
-        <div className="hidden lg:flex items-center space-x-6 text-back">
-          <div className="hover:text-darkBlue">Login</div>
+        {isLoggedIn() ? (
+          <div className="hidden lg:flex items-center space-x-6 text-back">
+          <div className="hover:text-darkBlue">Welcome {user?.userName}</div>
           <a
-            href=""
-            className="px-8 py-3 font-bold rounded text-white bg-lightGreen hover:opacity-70"
+            onClick={logout}
+            className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:opacity-70"
           >
-            Signup
+            Logout
           </a>
         </div>
+        ) : (
+          <div className="hidden lg:flex items-center space-x-6 text-back">
+          <Link to="/login" className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:opacity-70">Login</Link>
+          <Link
+            to="/register"
+            className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:opacity-70"
+          >
+            Signup
+          </Link>
+        </div>
+        )}
       </div>
     </nav>
   );
