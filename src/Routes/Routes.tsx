@@ -1,7 +1,7 @@
 import { createBrowserRouter } from "react-router-dom";
 import App from "../App";
 import HomePage from "../Pages/HomePage/HomePage";
-import TrainingProgramPage from "../Pages/TrainingProgramPage/TraininProgramPage";
+import TrainingProgramPage from "../Pages/TrainingProgramPage/TrainingProgramPage";
 import SearchPage from "../Pages/SearchPage/SearchPage";
 import ProgramDay from "../Components/ProgramDay/ProgramDay";
 import IncomeStatement from "../Components/IncomeStatement/IncomeStatement";
@@ -9,6 +9,9 @@ import DesignGuide from "../Pages/DesignGuide/DesignGuide";
 import LoginPage from "../Pages/LoginPage/LoginPage";
 import RegisterPage from "../Pages/RegisterPage/RegisterPage";
 import ProtectedRoute from "./ProtectedRoute";
+import TrainingProgramOverviewPage from "../Pages/TrainingProgramOverviewPage/TrainingProgramOverviewPage";
+import SessionPage from "../Pages/SessionPage/SessionPage";
+import ExercisePage from "../Pages/ExercisePage/ExercisePage";
 
 export const router = createBrowserRouter([
     {
@@ -21,12 +24,15 @@ export const router = createBrowserRouter([
 
             { path: "search", element: <ProtectedRoute><SearchPage /></ProtectedRoute> },
             { path: "design-guide", element: <ProtectedRoute><DesignGuide /></ProtectedRoute> },
-            { path: "program/:programId",
+            { path: "programs", element: <ProtectedRoute><TrainingProgramOverviewPage /></ProtectedRoute> },
+            { path: "programs/:programId",
                 element: <ProtectedRoute><TrainingProgramPage /></ProtectedRoute>,
                 children: [
                     { path: ":dayId", element: <ProgramDay /> },
                 ]
-            }
+            },
+            { path: "sessions", element: <ProtectedRoute><SessionPage /></ProtectedRoute> },
+            { path: "exercises", element: <ProtectedRoute><ExercisePage /></ProtectedRoute> },
         ]
     },
     {

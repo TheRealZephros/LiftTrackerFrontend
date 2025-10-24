@@ -9,14 +9,30 @@ const Tile = ({ title, subTitle }: TileProps) => {
   return (
     <div
       className="
-        flex flex-col 
-        border rounded-lg p-4 m-2
-        min-w-fit max-w-[25%] 
-        shrink-0 grow
+        bg-gray-800 text-white 
+        border border-gray-700 
+        rounded-xl shadow-md 
+        p-4 m-2
+        min-w-[200px] max-w-[300px] 
+        flex flex-col justify-between
+        hover:shadow-lg transition-shadow duration-200
       "
     >
-      <h2 className="text-lg font-semibold mb-2">{title}</h2>
-      <p className="text-gray-400 break-words whitespace-normal">{subTitle}</p>
+      {/* Title */}
+      <h2 className="text-lg font-semibold text-yellow-400 truncate">
+        {title}
+      </h2>
+
+      {/* Subtitle */}
+      <p
+        className="
+          text-gray-300 mt-2 text-sm leading-relaxed
+          break-words whitespace-normal
+        "
+        style={{ maxWidth: "100%" }}
+      >
+        {subTitle}
+      </p>
     </div>
   );
 };

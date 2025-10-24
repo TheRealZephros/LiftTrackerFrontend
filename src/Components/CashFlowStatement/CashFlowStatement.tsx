@@ -65,11 +65,11 @@ const CashFlowStatement = (props: CashFlowStatementProps) => {
     }, []);
   return (
     <div>
-      {cashFlowStatement ? (
+      {/* {cashFlowStatement ? (
         <Table data={cashFlowStatement} config={config} />
       ) : (
         <><Spinner /></>
-      )}
+      )} */}
     </div>
   )
 }

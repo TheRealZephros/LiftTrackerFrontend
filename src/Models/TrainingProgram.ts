@@ -1,3 +1,24 @@
+export type TrainingProgramAllModel = {
+  id: number,
+  name: string,
+}
+
+export type TrainingProgramCreateModel = {
+  name: string,
+  description: string,
+  isWeekDaySynced: boolean
+}
+
+export type TrainingProgramDeleteModel = {
+  id: number
+}
+
+export type TrainingProgramUpdateModel = {
+  name: string,
+  description: string,
+  isWeekDaySynced: boolean
+}
+
 export type TrainingProgramModel = {
   id: number,
   userId: string,
@@ -18,6 +39,22 @@ export type ProgramDayModel = {
     exercises: ProgrammedExerciseModel[]
 }
 
+export type ProgramDayCreateModel = {
+  trainingProgramId: number,
+  name: string,
+  position: number,
+  description: string,
+  notes: string
+}
+
+export type ProgramDayUpdateModel = {
+  name: string,
+  position: number,
+  description: string,
+  notes: string
+}
+
+
 export type ProgrammedExerciseModel = {
   id: number,
   programDayId: number,
@@ -29,26 +66,22 @@ export type ProgrammedExerciseModel = {
   notes: string
 }
 
-export type ExerciseModel = {
-  id: number,
-  name: string,
-  description: string,
-  isUsermade: boolean,
-  userId: string
+
+
+export type ProgrammedExerciseCreateModel = {
+  programDayId: number,
+  exerciseId: number,
+  position: number,
+  sets: number,
+  reps: number,
+  restTime: number,
+  notes: string
 }
 
-export type ExerciseSessionModel = {
-  id: number,
-  exerciseId: number,
-  userId: string,
-  createdAt: string,
-  sets: Array<ExerciseSetModel>
-}
-
-export type ExerciseSetModel = {
-  id: number,
-  exerciseId: number,
-  exerciseSessionId: number,
-  repetitions: number,
-  weight: number
+export type ProgrammedExerciseUpdateModel = {
+  position: number,
+  sets: number,
+  reps: number,
+  restTime: number,
+  notes: string
 }

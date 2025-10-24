@@ -17,27 +17,27 @@ const Navbar = () => {
                 <img src={logo} alt="" height="40" width="40" />
             </Link>
           <div className="hidden font-bold lg:flex">
-            <Link to="/search" className="text-white hover:text-darkBlue">
+            <Link to="/search" className="text-white hover:text-yellow-400">
               Search
             </Link>
           </div>
         </div>
         {isLoggedIn() ? (
           <div className="hidden lg:flex items-center space-x-6 text-back">
-          <div className="hover:text-darkBlue">Welcome {user?.userName}</div>
+          <div className="hover:text-yellow-400">Welcome {user?.userName}</div>
           <a
             onClick={logout}
-            className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:opacity-70"
+            className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:bg-yellow-600 cursor-pointer"
           >
             Logout
           </a>
         </div>
         ) : (
           <div className="hidden lg:flex items-center space-x-6 text-back">
-          <Link to="/login" className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:opacity-70">Login</Link>
+          <Link to="/login" className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:bg-yellow-600 cursor-pointer">Login</Link>
           <Link
             to="/register"
-            className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:opacity-70"
+            className="px-8 py-3 font-bold rounded text-white bg-yellow-500 hover:bg-yellow-600 cursor-pointer"
           >
             Signup
           </Link>

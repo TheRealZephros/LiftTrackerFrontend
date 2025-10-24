@@ -5,11 +5,18 @@ import reportWebVitals from './reportWebVitals';
 import { RouterProvider } from 'react-router-dom';
 import { router } from './Routes/Routes';
 
+// Ensure the hover portal div exists in the DOM
+const portalDivId = 'hover-portal';
+let portalDiv = document.getElementById(portalDivId);
+if (!portalDiv) {
+  portalDiv = document.createElement('div');
+  portalDiv.id = portalDivId;
+  document.body.appendChild(portalDiv);
+}
+
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
 );
-
-// console.log(searchCompanies("Tesla"))
 
 root.render(
   <React.StrictMode>
@@ -17,7 +24,5 @@ root.render(
   </React.StrictMode>
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
+// Optional: performance reporting
 reportWebVitals();

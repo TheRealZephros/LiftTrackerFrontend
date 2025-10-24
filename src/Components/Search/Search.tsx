@@ -11,7 +11,7 @@ const Search: React.FC<SearchProps> = ({search, handleSearchChange, onSearchSubm
     <section className="relative bg-gray-900">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <form
-          className="form relative flex flex-col w-full p-5 space-y-4 bg-yellow-500 rounded-lg md:flex-row md:space-y-0 md:space-x-3"
+          className="form relative flex flex-col w-full p-5 space-y-4 bg-yellow-500 hover:bg-yellow-600 rounded-lg md:flex-row md:space-y-0 md:space-x-3"
           onSubmit={onSearchSubmit}
         >
           <input

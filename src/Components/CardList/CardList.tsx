@@ -1,31 +1,38 @@
-import React, { JSX, SyntheticEvent } from 'react'
-import Card from '../Card/Card'
-import { CompanySearch } from '../../company'
-import { v4 as uuidv4 } from 'uuid';
+import React from "react";
+import Card from "../Card/Card";
+import { TrainingProgramAllModel } from "../../Models/TrainingProgram";
 
-interface CardListProps {
-    searchResults: CompanySearch[];
-    onPortfolioCreate: (e: SyntheticEvent) => void;
+interface ProgramCardListProps {
+  programs: TrainingProgramAllModel[];
+  onDelete?: (id: number) => void;
+  onEdit?: (id: number) => void;
 }
 
-const CardList: React.FC<CardListProps> = ({ searchResults, onPortfolioCreate }: CardListProps) : JSX.Element => {
+const ProgramCardList: React.FC<ProgramCardListProps> = ({
+  programs,
+  onDelete,
+  onEdit,
+}) => {
   return (
-    <div>
-      { 
-        searchResults.length > 0 ?
-          searchResults.map((result) => (
+    <div className="flex justify-center">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 p-4 max-w-6xl w-full">
+        {programs.length > 0 ? (
+          programs.map((program) => (
             <Card
-            id={result.symbol}
-          key={uuidv4()}
-          searchResult={result}
-          onPortfolioCreate={onPortfolioCreate}
-          />
-        )
-        ) : <p className="mb-3 mt-3 text-xl font-semibold text-center md:text-xl">
-              No results!
-            </p>
-    }
+              key={program.id.toString()}
+              program={program}
+              onDelete={onDelete}
+              onEdit={onEdit}
+            />
+          ))
+        ) : (
+          <p className="text-center text-gray-400 italic text-lg mt-8 col-span-full">
+            No programs found.
+          </p>
+        )}
+      </div>
     </div>
-  )
-}
-export default CardList
+  );
+};
+
+export default ProgramCardList;
