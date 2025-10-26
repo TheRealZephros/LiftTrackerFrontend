@@ -1,19 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { ProgrammedExerciseCreateModel, ProgrammedExerciseModel } from "../../../Models/TrainingProgram";
-import { getAllExercises } from "../../../Services/ExerciseService";
+import {
+  ProgrammedExerciseCreateModel,
+  ProgrammedExerciseModel,
+} from "../../../Models/TrainingProgram";
+import {
+  getAllExercises,
+} from "../../../Services/ExerciseService";
+import {
+  createProgrammedExercise,
+  updateProgrammedExercise,
+} from "../../../Services/TrainingProgramService";
 import { ExerciseModel } from "../../../Models/ExerciseModel";
+import { toast } from "react-toastify";
 
 interface CreateProgrammedExerciseModalProps {
   onClose: () => void;
-  onCreate: (exercise: ProgrammedExerciseCreateModel) => void;
+  refresh: () => Promise<void>;
   programDayId: number;
   nextPosition: number;
-  existingExercise?: ProgrammedExerciseModel; // optional prop for edit mode
+  existingExercise?: ProgrammedExerciseModel;
 }
 
 const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps> = ({
   onClose,
-  onCreate,
+  refresh,
   programDayId,
   nextPosition,
   existingExercise,
@@ -30,7 +40,7 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
 
-  // Fetch exercises on mount
+  // Fetch exercises
   useEffect(() => {
     const fetchExercises = async () => {
       try {
@@ -38,8 +48,7 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
         setExercises(data);
         setFilteredExercises(data);
       } catch (error) {
-        console.error("Error fetching exercises:", error);
-        alert("Failed to load exercises");
+        toast.error("Failed to load exercises", { theme: "dark" });
       } finally {
         setLoading(false);
       }
@@ -48,7 +57,7 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
     fetchExercises();
   }, []);
 
-  // Filter exercises dynamically
+  // Filter exercises
   useEffect(() => {
     const filtered = exercises.filter((ex) =>
       ex.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -64,18 +73,20 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
       setReps(existingExercise.reps);
       setRestTime(existingExercise.restTime);
       setNotes(existingExercise.notes || "");
+      const existing = exercises.find((ex) => ex.id === existingExercise.exerciseId);
+      if (existing) setSearchTerm(existing.name);
     }
-  }, [existingExercise]);
+  }, [existingExercise, exercises]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!selectedExerciseId) {
-      alert("Please select an exercise");
+      toast.error("Please select an exercise", { theme: "dark" });
       return;
     }
 
-    const newOrUpdatedExercise: ProgrammedExerciseCreateModel = {
+    const payload: ProgrammedExerciseCreateModel = {
       programDayId,
       exerciseId: Number(selectedExerciseId),
       position: isEditMode ? existingExercise!.position : nextPosition,
@@ -85,7 +96,20 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
       notes,
     };
 
-    onCreate(newOrUpdatedExercise);
+    try {
+      if (isEditMode) {
+        await updateProgrammedExercise(existingExercise!.id, payload);
+        toast.success("Exercise updated!", { theme: "dark" });
+      } else {
+        await createProgrammedExercise(payload);
+        toast.success("Exercise created!", { theme: "dark" });
+      }
+      await refresh();
+      onClose();
+    } catch (error) {
+      toast.error("Failed to save exercise", { theme: "dark" });
+      console.error(error);
+    }
   };
 
   if (loading) {
@@ -99,9 +123,9 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
   }
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50 p-4">
       <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">
+        <h2 className="text-xl font-semibold mb-4 text-white">
           {isEditMode ? "Edit Programmed Exercise" : "Add Programmed Exercise"}
         </h2>
 
@@ -118,7 +142,7 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search exercises..."
               className="w-full mb-2 p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
-              disabled={isEditMode} // prevent changing exercise in edit mode
+              disabled={isEditMode}
             />
 
             <select
@@ -126,7 +150,7 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
               onChange={(e) => setSelectedExerciseId(Number(e.target.value))}
               className="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
               size={5}
-              disabled={isEditMode} // prevent changing exercise in edit mode
+              disabled={isEditMode}
             >
               {filteredExercises.length > 0 ? (
                 filteredExercises.map((exercise) => (

@@ -18,13 +18,13 @@ import Table from "../Table/Table";
 import { toast } from "react-toastify";
 import CreateProgrammedExerciseModal from "../Modals/CreateProgrammedExerciseModal/CreateProgrammedExerciseModal";
 import { ExerciseModel } from "../../Models/ExerciseModel";
-import { FiEdit, FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
+import { FiEdit2, FiPlus, FiTrash2 } from "react-icons/fi";
 
 interface EnrichedExercise extends ProgrammedExerciseModel {
   exercise: ExerciseModel;
 }
 
-const ProgramDay = () => {
+const ProgramDay: React.FC = () => {
   const { dayId } = useParams<{ dayId: string }>();
   const [dayData, setDayData] = useState<ProgramDayModel>();
   const [enrichedExercises, setEnrichedExercises] = useState<EnrichedExercise[]>([]);
@@ -33,20 +33,23 @@ const ProgramDay = () => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [exerciseToEdit, setExerciseToEdit] = useState<EnrichedExercise | null>(null);
 
-  const fetchDayAndExercises = async () => {
+  /**
+   * ✅ Centralized refresh function
+   */
+  const fetchProgramData = async () => {
     if (!dayId) return;
     setLoading(true);
     try {
       const day = await getProgramDayById(dayId);
       setDayData(day);
 
-      const exercises = await Promise.all(
+      const enriched = await Promise.all(
         day.exercises.map(async (pe) => {
           const exercise = await getExerciseById(pe.exerciseId);
           return { ...pe, exercise };
         })
       );
-      setEnrichedExercises(exercises);
+      setEnrichedExercises(enriched);
     } catch (error) {
       console.error("Error fetching day or exercises:", error);
       toast.error("Failed to load program day", { theme: "dark" });
@@ -56,9 +59,12 @@ const ProgramDay = () => {
   };
 
   useEffect(() => {
-    fetchDayAndExercises();
+    fetchProgramData();
   }, [dayId]);
 
+  /**
+   * ✅ Create Exercise Handler
+   */
   const handleAddExercise = async (newExercise: ProgrammedExerciseCreateModel) => {
     try {
       const created = await createProgrammedExercise(newExercise);
@@ -72,11 +78,9 @@ const ProgramDay = () => {
     }
   };
 
-  const handleEditExercise = (exercise: EnrichedExercise) => {
-    setExerciseToEdit(exercise);
-    setShowEditModal(true);
-  };
-
+  /**
+   * ✅ Edit Exercise Handler
+   */
   const handleUpdateExercise = async (updatedData: ProgrammedExerciseCreateModel) => {
     if (!exerciseToEdit) return;
 
@@ -101,6 +105,9 @@ const ProgramDay = () => {
     }
   };
 
+  /**
+   * ✅ Delete Exercise Handler
+   */
   const handleDeleteExercise = async (exerciseId: number) => {
     if (!window.confirm("Are you sure you want to delete this exercise?")) return;
 
@@ -114,14 +121,19 @@ const ProgramDay = () => {
     }
   };
 
+  /**
+   * ✅ Loading & Empty States
+   */
   if (loading) return <Spinner />;
-
-  if (!dayData) {
+  if (!dayData)
     return <p className="text-gray-400 italic text-center mt-4">No data found.</p>;
-  }
 
+  /**
+   * ✅ Render
+   */
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-semibold text-white">{dayData.name}</h2>
         <button
@@ -135,6 +147,7 @@ const ProgramDay = () => {
 
       <p className="text-gray-300">{dayData.description}</p>
 
+      {/* Exercise Table */}
       {enrichedExercises.length > 0 ? (
         <Table
           key={enrichedExercises.map((ex) => ex.id).join(",")}
@@ -145,7 +158,10 @@ const ProgramDay = () => {
               render: (row: EnrichedExercise) => (
                 <div className="flex gap-2">
                   <button
-                    onClick={() => handleEditExercise(row)}
+                    onClick={() => {
+                      setExerciseToEdit(row);
+                      setShowEditModal(true);
+                    }}
                     className="p-1 text-blue-400 hover:text-blue-500 transition"
                     title="Edit Exercise"
                   >
@@ -174,7 +190,7 @@ const ProgramDay = () => {
       {showCreateModal && (
         <CreateProgrammedExerciseModal
           onClose={() => setShowCreateModal(false)}
-          onCreate={handleAddExercise}
+          refresh={fetchProgramData}
           programDayId={Number(dayId)}
           nextPosition={enrichedExercises.length + 1}
         />
@@ -187,13 +203,12 @@ const ProgramDay = () => {
             setShowEditModal(false);
             setExerciseToEdit(null);
           }}
-          onCreate={handleUpdateExercise}
+          refresh={fetchProgramData}
           programDayId={Number(dayId)}
           nextPosition={exerciseToEdit.position}
           existingExercise={exerciseToEdit}
         />
       )}
-
     </div>
   );
 };

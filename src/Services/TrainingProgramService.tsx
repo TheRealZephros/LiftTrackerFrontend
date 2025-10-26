@@ -119,7 +119,7 @@ export const updateTrainingProgram = async (programId: number, updatedProgram: T
 
 export const updateProgramDay = async (dayId: number, updatedDay: ProgramDayUpdateModel): Promise<void> => {
   try {
-    await axios.put(api + `days/update/${dayId}`, updatedDay);
+    await axios.put(api + `update/days/${dayId}`, updatedDay);
   } catch (error) {
     handleError(error);
     console.error("Error updating program day:", error);
@@ -129,7 +129,7 @@ export const updateProgramDay = async (dayId: number, updatedDay: ProgramDayUpda
 
 export const updateProgrammedExercise = async (exerciseId: number, updatedExercise: ProgrammedExerciseCreateModel): Promise<void> => {
     try {
-        await axios.put(api + `exercises/update/${exerciseId}`, updatedExercise);
+        await axios.put(api + `update/exercises/${exerciseId}`, updatedExercise);
     } catch (error) {
         handleError(error);
         console.error("Error updating programmed exercise:", error);
