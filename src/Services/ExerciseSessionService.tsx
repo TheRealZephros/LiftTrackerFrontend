@@ -15,7 +15,7 @@ export const getAllExerciseSessions = async (): Promise<ExerciseSessionModel[]> 
     }
 };
 
-export const getExerciseSessionById = async (sessionId: string): Promise<ExerciseSessionModel> => {
+export const getExerciseSessionById = async (sessionId: number): Promise<ExerciseSessionModel> => {
     try {
         const { data } = await axios.get<ExerciseSessionModel>(api + `${sessionId}`);
         return data;
@@ -26,7 +26,18 @@ export const getExerciseSessionById = async (sessionId: string): Promise<Exercis
     }
 };
 
-export const getSetsBySessionId = async (sessionId: string): Promise<ExerciseSessionModel[]> => {
+export const getSessionsByExerciseId = async (exerciseId: number): Promise<ExerciseSessionModel[]> => {
+    try {
+        const { data } = await axios.get<ExerciseSessionModel[]>(api + `exercise/${exerciseId}`)
+        return data;
+    } catch (error) {
+        handleError(error);
+        console.error("Error fetching sets for exercise session:", error);
+        throw error;
+    }
+};
+
+export const getSetsBySessionId = async (sessionId: number): Promise<ExerciseSessionModel[]> => {
     try {
         const { data } = await axios.get<ExerciseSessionModel[]>(api + `${sessionId}/sets`);
         return data;
@@ -37,7 +48,7 @@ export const getSetsBySessionId = async (sessionId: string): Promise<ExerciseSes
     }
 };
 
-export const getSetsById = async (setId: string): Promise<ExerciseSessionModel> => {
+export const getSetsById = async (setId: number): Promise<ExerciseSessionModel> => {
     try {
         const { data } = await axios.get<ExerciseSessionModel>(api + `sets/${setId}`);
         return data;

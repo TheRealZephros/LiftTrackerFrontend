@@ -18,7 +18,8 @@ export type ExerciseSetModel = {
 
 export type ExerciseSessionCreateModel = {
   exerciseId: number,
-  notes: string
+  notes: string,
+  createdAt: string
 }
 
 export type ExerciseSessionCreateResponseModel = {
@@ -48,6 +49,7 @@ export type ExerciseSetCreateResponseModel = {
 export type ExerciseSessionUpdateModel = {
   exerciseId: number,
   notes: string
+  createdAt: string
 }
 
 export type ExerciseSetUpdateModel = {

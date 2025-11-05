@@ -1,176 +1,207 @@
 import React, { useEffect, useState } from "react";
-import {
-  getAllExercises,
-  createExercise,
-  updateExercise,
-  deleteExercise,
-} from "../../Services/ExerciseService";
-import { ExerciseModel, ExerciseCreateModel } from "../../Models/ExerciseModel";
+import { useParams } from "react-router-dom";
+import { getExerciseById } from "../../Services/ExerciseService";
+import { getSessionsByExerciseId } from "../../Services/ExerciseSessionService";
+import { ExerciseModel } from "../../Models/ExerciseModel";
+import { ExerciseSessionModel } from "../../Models/ExerciseSessionModel";
 import { toast } from "react-toastify";
-import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
 import Spinner from "../../Components/Spinner/Spinner";
-import CreateExerciseModal from "../../Components/Modals/CreateExerciseModal/CreateExerciseModal";
+import {
+  AreaChart,
+  Area,
+  Line,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
-const ExercisePage = () => {
-  const [exercises, setExercises] = useState<ExerciseModel[]>([]);
+const ExercisePage: React.FC = () => {
+  const { exerciseId } = useParams<{ exerciseId: string }>();
+  const [exercise, setExercise] = useState<ExerciseModel | null>(null);
+  const [sessions, setSessions] = useState<ExerciseSessionModel[]>([]);
+  const [chartData, setChartData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [exerciseToEdit, setExerciseToEdit] = useState<ExerciseModel | null>(null);
 
-  // Fetch exercises
-  const fetchExercises = async () => {
-    setLoading(true);
-    try {
-      const data = await getAllExercises();
-      setExercises(data);
-    } catch (error) {
-      console.error("Error loading exercises:", error);
-      toast.error("Failed to load exercises", { theme: "dark" });
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Toggle states
+  const [showWeight, setShowWeight] = useState(true);
+  const [showReps, setShowReps] = useState(false);
 
   useEffect(() => {
-    fetchExercises();
-  }, []);
+    const fetchData = async () => {
+      if (!exerciseId) {
+        setLoading(false);
+        return;
+      }
 
-  // CREATE
-  const handleCreate = async (exercise: ExerciseCreateModel) => {
-    try {
-      const created = await createExercise(exercise);
-      setExercises((prev) => [...prev, created]);
-      toast.success("Exercise created successfully!", { theme: "dark" });
-      setShowModal(false);
-    } catch (error) {
-      console.error("Error creating exercise:", error);
-      toast.error("Failed to create exercise", { theme: "dark" });
-    }
-  };
+      try {
+        const [exerciseData, sessionData] = await Promise.all([
+          getExerciseById(Number(exerciseId)),
+          getSessionsByExerciseId(Number(exerciseId)),
+        ]);
 
-  // UPDATE
-  const handleUpdate = async (exercise: ExerciseCreateModel) => {
-    if (!exerciseToEdit) return;
-    try {
-      await updateExercise(exerciseToEdit.id, exercise);
-      setExercises((prev) =>
-        prev.map((ex) =>
-          ex.id === exerciseToEdit.id ? { ...ex, ...exercise } : ex
-        )
-      );
-      toast.success("Exercise updated successfully!", { theme: "dark" });
-      setExerciseToEdit(null);
-      setShowModal(false);
-    } catch (error) {
-      console.error("Error updating exercise:", error);
-      toast.error("Failed to update exercise", { theme: "dark" });
-    }
-  };
+        setExercise(exerciseData);
+        setSessions(sessionData);
 
-  // DELETE
-  const handleDelete = async (id: number) => {
-    if (!window.confirm("Are you sure you want to delete this exercise?")) return;
-    try {
-      await deleteExercise(id);
-      setExercises((prev) => prev.filter((e) => e.id !== id));
-      toast.success("Exercise deleted!", { theme: "dark" });
-    } catch (error) {
-      console.error("Error deleting exercise:", error);
-      toast.error("Failed to delete exercise", { theme: "dark" });
-    }
-  };
+        // Transform data for chart
+        const byDate: Record<string, { weights: number[]; reps: number[] }> = {};
+        sessionData.forEach((session) => {
+          const date = session.createdAt.split("T")[0];
+          const weights = session.sets.map((s) => s.weight).filter((w) => w != null);
+          const reps = session.sets.map((s) => s.repetitions).filter((r) => r != null);
 
-  // UI Rendering
+          if (!byDate[date]) byDate[date] = { weights: [], reps: [] };
+          byDate[date].weights.push(...weights);
+          byDate[date].reps.push(...reps);
+        });
+
+        const transformed = Object.entries(byDate)
+          .map(([date, { weights, reps }]) => {
+            if (weights.length === 0 && reps.length === 0) return null;
+
+            return {
+              date,
+              minWeight: weights.length ? Math.min(...weights) : undefined,
+              maxWeight: weights.length ? Math.max(...weights) : undefined,
+              avgWeight: weights.length
+                ? weights.reduce((a, b) => a + b, 0) / weights.length
+                : undefined,
+              avgReps: reps.length
+                ? reps.reduce((a, b) => a + b, 0) / reps.length
+                : undefined,
+            };
+          })
+          .filter((entry): entry is NonNullable<typeof entry> => entry !== null);
+
+        setChartData(transformed.sort((a, b) => a.date.localeCompare(b.date)));
+      } catch (err) {
+        toast.error("Failed to load exercise or session data", { theme: "dark" });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [exerciseId]);
+
   if (loading) return <Spinner />;
 
+  if (!exercise) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-blueGray-100 text-gray-700">
+        Exercise not found.
+      </div>
+    );
+  }
+
   return (
-    <div className="p-4 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-start gap-4">
-        <h2 className="text-2xl font-semibold text-white">Exercises</h2>
-        <button
-            onClick={() => {
-            setExerciseToEdit(null);
-            setShowModal(true);
-            }}
-            className="p-1 text-yellow-400 hover:text-yellow-500 transition"
-            title="Add new exercise"
-        >
-            {FiPlus({ size: 18 })}
-            
-        </button>
+    <div className="bg-blueGray-100 w-full flex flex-col items-center px-4 pt-24 pb-10">
+      {/* Info Card */}
+      <div className="bg-gray-800 text-yellow-500 rounded-2xl shadow-xl p-8 max-w-2xl w-full mb-10">
+        <h1 className="text-4xl font-semibold mb-6 text-center">{exercise.name}</h1>
+        <div className="space-y-3 text-gray-300">
+          <p>
+            <strong className="text-yellow-500">Name:</strong> {exercise.name || "N/A"}
+          </p>
+          <p>
+            <strong className="text-yellow-500">Description:</strong>{" "}
+            {exercise.description || "No description provided."}
+          </p>
         </div>
+      </div>
 
-      {/* Exercise Grid */}
-      {exercises.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-          {exercises.map((exercise) => (
-            <div
-              key={exercise.id}
-              className="bg-gray-800 rounded-lg p-4 shadow-md border border-gray-700 hover:shadow-lg transition-shadow flex flex-col justify-between"
-            >
-              <div>
-                <h3 className="text-lg font-semibold text-yellow-400 truncate">
-                  {exercise.name}
-                </h3>
-                <p className="text-gray-300 text-sm mt-2 line-clamp-3">
-                  {exercise.description || "No description provided."}
-                </p>
-              </div>
+      {/* Toggle Buttons */}
+      <div className="flex space-x-4 mb-6">
+        <button
+          onClick={() => setShowWeight((prev) => !prev)}
+          className={`px-4 py-2 rounded-xl font-semibold ${
+            showWeight ? "bg-yellow-500 text-black" : "bg-gray-700 text-yellow-500"
+          }`}
+        >
+          Weight
+        </button>
+        <button
+          onClick={() => setShowReps((prev) => !prev)}
+          className={`px-4 py-2 rounded-xl font-semibold ${
+            showReps ? "bg-red-500 text-black" : "bg-gray-700 text-red-500"
+          }`}
+        >
+          Reps
+        </button>
+      </div>
 
-              <div className="flex justify-between items-center mt-4">
-                <span
-                  className={`px-2 py-1 text-xs rounded-full ${
-                    exercise.isUsermade
-                      ? "bg-green-700 text-green-300"
-                      : "bg-blue-700 text-blue-300"
-                  }`}
-                >
-                  {exercise.isUsermade ? "User" : "System"}
-                </span>
+      {/* Progress Chart */}
+      {chartData.length > 0 ? (
+        <div className="bg-gray-900 rounded-2xl p-6 shadow-xl max-w-5xl w-full">
+          <h2 className="text-2xl font-semibold text-yellow-500 mb-4 text-center">
+            Progress Over Time
+          </h2>
+          <ResponsiveContainer width="100%" height={350}>
+            <AreaChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+              <XAxis dataKey="date" stroke="#ccc" />
 
-                <div className="flex gap-2">
-                  <button
-                    onClick={() => {
-                      setExerciseToEdit(exercise);
-                      setShowModal(true);
-                    }}
-                    className="p-1 text-blue-400 hover:text-blue-500 transition"
-                    title="Edit Exercise"
-                  >
-                    {FiEdit2({ size: 18 })}
-                  </button>
+              {/* Left Y-axis for weight */}
+              {showWeight && <YAxis stroke="#ffeb3b" />}
 
-                  {exercise.isUsermade && (
-                    <button
-                      onClick={() => handleDelete(exercise.id)}
-                      className="p-1 text-red-400 hover:text-red-500 transition"
-                      title="Delete Exercise"
-                    >
-                      {FiTrash2({ size: 18 })}
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          ))}
+              {/* Right Y-axis for reps */}
+              {showReps && <YAxis yAxisId="reps" orientation="right" stroke="#ff4d4d" />}
+
+              <Tooltip
+                contentStyle={{ backgroundColor: "#222", borderRadius: "8px" }}
+                labelStyle={{ color: "#ffeb3b" }}
+              />
+
+              {/* Weight Areas/Line */}
+              {showWeight && (
+                <>
+                  <Area
+                    type="monotone"
+                    dataKey="maxWeight"
+                    stroke="#ffcc00"
+                    fill="#ffcc00"
+                    fillOpacity={0.2}
+                    isAnimationActive={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="minWeight"
+                    stroke="#ffcc00"
+                    fill="#ffcc00"
+                    fillOpacity={0.05}
+                    isAnimationActive={false}
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="avgWeight"
+                    stroke="#ffeb3b"
+                    strokeWidth={2}
+                    dot={{ r: 3 }}
+                    isAnimationActive={false}
+                  />
+                </>
+              )}
+
+              {/* Reps Line */}
+              {showReps && (
+                <Line
+                  yAxisId="reps"
+                  type="monotone"
+                  dataKey="avgReps"
+                  stroke="#ff4d4d"
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  isAnimationActive={false}
+                />
+              )}
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       ) : (
-        <p className="text-gray-400 italic text-center mt-8">
-          No exercises available.
+        <p className="text-gray-400 italic mt-6">
+          No exercise session data available for this exercise yet.
         </p>
-      )}
-
-      {/* Create/Edit Modal */}
-      {showModal && (
-        <CreateExerciseModal
-          onClose={() => {
-            setShowModal(false);
-            setExerciseToEdit(null);
-          }}
-          onSave={exerciseToEdit ? handleUpdate : handleCreate}
-          existingExercise={exerciseToEdit || undefined}
-        />
       )}
     </div>
   );

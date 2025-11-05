@@ -4,13 +4,13 @@ import HomePage from "../Pages/HomePage/HomePage";
 import TrainingProgramPage from "../Pages/TrainingProgramPage/TrainingProgramPage";
 import SearchPage from "../Pages/SearchPage/SearchPage";
 import ProgramDay from "../Components/ProgramDay/ProgramDay";
-import IncomeStatement from "../Components/IncomeStatement/IncomeStatement";
 import DesignGuide from "../Pages/DesignGuide/DesignGuide";
 import LoginPage from "../Pages/LoginPage/LoginPage";
 import RegisterPage from "../Pages/RegisterPage/RegisterPage";
 import ProtectedRoute from "./ProtectedRoute";
 import TrainingProgramOverviewPage from "../Pages/TrainingProgramOverviewPage/TrainingProgramOverviewPage";
 import SessionPage from "../Pages/SessionPage/SessionPage";
+import ExerciseOverviewPage from "../Pages/ExerciseOverviewPage/ExerciseOverviewPage";
 import ExercisePage from "../Pages/ExercisePage/ExercisePage";
 
 export const router = createBrowserRouter([
@@ -32,9 +32,8 @@ export const router = createBrowserRouter([
                 ]
             },
             { path: "sessions", element: <ProtectedRoute><SessionPage /></ProtectedRoute> },
-            { path: "exercises", element: <ProtectedRoute><ExercisePage /></ProtectedRoute> },
+            { path: "exercises", element: <ProtectedRoute><ExerciseOverviewPage /></ProtectedRoute> },
+            { path: "exercises/:exerciseId", element: <ProtectedRoute><ExercisePage /></ProtectedRoute> },
         ]
     },
-    {
-    }
 ]);

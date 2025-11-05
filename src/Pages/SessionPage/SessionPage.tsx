@@ -7,16 +7,22 @@ import { toast } from "react-toastify";
 import Spinner from "../../Components/Spinner/Spinner";
 import { groupSessionsByDay } from "../../Helpers/GroupSessionsByDay";
 import ExerciseSessionModal from "../../Components/Modals/ExerciseSessionModal/ExerciseSessionModal";
+import CreateSessionModal from "../../Components/Modals/CreateSessionModal/CreateSessionModal";
+import NestedSetsModal from "../../Components/Modals/CreateSessionModal/NestedSetsModal";
 import { FiPlus } from "react-icons/fi";
 
-const SessionPage = () => {
+const SessionPage: React.FC = () => {
   const [sessions, setSessions] = useState<ExerciseSessionModel[]>([]);
   const [exercises, setExercises] = useState<Record<number, ExerciseModel>>({});
   const [loading, setLoading] = useState(true);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
-  const [showModal, setShowModal] = useState(false);
 
-  // Fetch sessions and exercises
+  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+  const [showExerciseModal, setShowExerciseModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+
+  // Nested Sets Modal state lifted
+  const [nestedSetsSession, setNestedSetsSession] = useState<ExerciseSessionModel | null>(null);
+
   const fetchSessions = async () => {
     setLoading(true);
     try {
@@ -24,11 +30,8 @@ const SessionPage = () => {
         getAllExerciseSessions(),
         getAllExercises(),
       ]);
-
-      // Map exercises by id for quick lookup
       const exercisesMap: Record<number, ExerciseModel> = {};
       exercisesData.forEach((ex) => (exercisesMap[ex.id] = ex));
-
       setSessions(sessionsData);
       setExercises(exercisesMap);
     } catch (err) {
@@ -59,10 +62,11 @@ const SessionPage = () => {
 
   return (
     <div className="p-4 space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-start gap-4">
         <h2 className="text-2xl font-semibold text-white">Exercise Sessions</h2>
         <button
-          onClick={() => { setSelectedDay(null); setShowModal(true); }}
+          onClick={() => setShowCreateModal(true)}
           className="p-1 text-yellow-400 hover:text-yellow-500 transition"
           title="Add new session"
         >
@@ -70,10 +74,10 @@ const SessionPage = () => {
         </button>
       </div>
 
+      {/* Session cards by day */}
       {Object.keys(grouped).length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {Object.entries(grouped).map(([day, daySessions]) => {
-            // Unique exercise names
             const uniqueExerciseNames = Array.from(
               new Set(daySessions.map(s => exercises[s.exerciseId]?.name || s.exerciseId))
             );
@@ -82,7 +86,7 @@ const SessionPage = () => {
               <div
                 key={day}
                 className="bg-gray-800 rounded-lg p-4 shadow-md border border-gray-700 hover:shadow-lg transition-shadow cursor-pointer flex flex-col"
-                onClick={() => { setSelectedDay(day); setShowModal(true); }}
+                onClick={() => { setSelectedDay(day); setShowExerciseModal(true); }}
               >
                 <h3 className="text-lg font-semibold text-yellow-400">
                   {new Date(day).toLocaleDateString()}
@@ -100,20 +104,31 @@ const SessionPage = () => {
         <p className="text-gray-400 italic text-center mt-8">No sessions available.</p>
       )}
 
-      {showModal && selectedDay !== null && (
+      {/* Modals */}
+      {showExerciseModal && selectedDay && (
         <ExerciseSessionModal
           day={selectedDay}
           sessions={sessions.filter(s => s.createdAt.startsWith(selectedDay))}
           exercises={exercises}
-          onClose={() => setShowModal(false)}
+          onClose={() => setShowExerciseModal(false)}
           refresh={fetchSessions}
+          onOpenSets={(session) => setNestedSetsSession(session)}
         />
       )}
 
-      {showModal && selectedDay === null && (
-        <ExerciseSessionModal
-          exercises={exercises}
-          onClose={() => setShowModal(false)}
+      {showCreateModal && (
+        <CreateSessionModal
+          onClose={() => setShowCreateModal(false)}
+          refresh={fetchSessions}
+          exercises={Object.values(exercises)}
+          onOpenSets={(session) => setNestedSetsSession(session)}
+        />
+      )}
+
+      {nestedSetsSession && (
+        <NestedSetsModal
+          session={nestedSetsSession}
+          onClose={() => setNestedSetsSession(null)}
           refresh={fetchSessions}
         />
       )}
