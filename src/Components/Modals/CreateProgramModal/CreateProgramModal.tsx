@@ -40,7 +40,7 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ onClose, onCrea
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg">
+      <div className="bg-bg2 p-6 rounded-lg w-full max-w-md shadow-lg">
         <h2 className="text-xl font-semibold mb-4">
           {program ? "Edit Training Program" : "Create Training Program"}
         </h2>
@@ -52,7 +52,7 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ onClose, onCrea
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:outline-none focus:ring-2 focus:ring-button1"
               required
             />
           </div>
@@ -62,7 +62,7 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ onClose, onCrea
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:outline-none focus:ring-2 focus:ring-button1"
             />
           </div>
 
@@ -82,14 +82,14 @@ const CreateProgramModal: React.FC<CreateProgramModalProps> = ({ onClose, onCrea
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+              className="bg-bg4 hover:bg-bg3 text-text1 px-4 py-2 rounded-md"
             >
               Cancel
             </button>
 
             <button
               type="submit"
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+              className="bg-button1 hover:bg-button2 text-text1 px-4 py-2 rounded-md"
             >
               {program ? "Update" : "Create"}
             </button>

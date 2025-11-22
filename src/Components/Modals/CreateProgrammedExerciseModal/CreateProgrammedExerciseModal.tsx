@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   ProgrammedExerciseCreateModel,
   ProgrammedExerciseModel,
 } from "../../../Models/TrainingProgram";
-import {
-  getAllExercises,
-} from "../../../Services/ExerciseService";
-import {
-  createProgrammedExercise,
-  updateProgrammedExercise,
-} from "../../../Services/TrainingProgramService";
 import { ExerciseModel } from "../../../Models/ExerciseModel";
-import { toast } from "react-toastify";
+import { useTrainingProgramService } from "../../../Services/TrainingProgramService";
+import { useExerciseService } from "../../../Services/ExerciseService";
 
 interface CreateProgrammedExerciseModalProps {
   onClose: () => void;
@@ -39,33 +34,32 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
   const [restTime, setRestTime] = useState<number>(60);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
-  // Fetch exercises
+  const { getAll: getAllExercises } = useExerciseService();
+  const { createExercise, updateExercise } = useTrainingProgramService();
+
   useEffect(() => {
     const fetchExercises = async () => {
       try {
         const data = await getAllExercises();
         setExercises(data);
         setFilteredExercises(data);
-      } catch (error) {
+      } catch (err) {
         toast.error("Failed to load exercises", { theme: "dark" });
       } finally {
         setLoading(false);
       }
     };
-
     fetchExercises();
-  }, []);
+  }, [getAllExercises]);
 
-  // Filter exercises
   useEffect(() => {
-    const filtered = exercises.filter((ex) =>
-      ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+    setFilteredExercises(
+      exercises.filter((ex) => ex.name.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-    setFilteredExercises(filtered);
   }, [searchTerm, exercises]);
 
-  // Prefill data in edit mode
   useEffect(() => {
     if (existingExercise) {
       setSelectedExerciseId(existingExercise.exerciseId);
@@ -80,42 +74,44 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!selectedExerciseId) {
       toast.error("Please select an exercise", { theme: "dark" });
       return;
     }
 
-    const payload: ProgrammedExerciseCreateModel = {
-      programDayId,
-      exerciseId: Number(selectedExerciseId),
-      position: isEditMode ? existingExercise!.position : nextPosition,
-      sets,
-      reps,
-      restTime,
-      notes,
-    };
-
+    setSaving(true);
     try {
+      const payload: ProgrammedExerciseCreateModel = {
+        programDayId,
+        exerciseId: Number(selectedExerciseId),
+        position: isEditMode ? existingExercise!.position : nextPosition,
+        sets,
+        reps,
+        restTime,
+        notes,
+      };
+
       if (isEditMode) {
-        await updateProgrammedExercise(existingExercise!.id, payload);
+        await updateExercise(existingExercise!.id, payload);
         toast.success("Exercise updated!", { theme: "dark" });
       } else {
-        await createProgrammedExercise(payload);
+        await createExercise(payload);
         toast.success("Exercise created!", { theme: "dark" });
       }
       await refresh();
       onClose();
-    } catch (error) {
+    } catch (err) {
+      console.error(err);
       toast.error("Failed to save exercise", { theme: "dark" });
-      console.error(error);
+    } finally {
+      setSaving(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-        <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg text-white">
+      <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50 p-4">
+        <div className="bg-bg2 p-6 rounded-lg w-full max-w-md shadow-lg text-text1">
           Loading exercises...
         </div>
       </div>
@@ -124,33 +120,28 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
 
   return (
     <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50 p-4">
-      <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg">
-        <h2 className="text-xl font-semibold mb-4 text-white">
+      <div className="bg-bg2 p-6 rounded-lg w-full max-w-md shadow-lg overflow-y-auto max-h-[80vh]">
+        <h2 className="text-xl font-semibold mb-4 text-text1">
           {isEditMode ? "Edit Programmed Exercise" : "Add Programmed Exercise"}
         </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Exercise Selector */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-200">
-              Select Exercise
-            </label>
-
+            <label className="block mb-1 text-sm font-medium text-text1">Select Exercise</label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search exercises..."
-              className="w-full mb-2 p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
-              disabled={isEditMode}
+              className="w-full mb-2 p-2 rounded-md bg-bg3 text-text1 focus:ring-2 focus:ring-button1"
+              disabled={isEditMode || saving}
             />
-
             <select
               value={selectedExerciseId}
               onChange={(e) => setSelectedExerciseId(Number(e.target.value))}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:ring-2 focus:ring-button1"
               size={5}
-              disabled={isEditMode}
+              disabled={isEditMode || saving}
             >
               {filteredExercises.length > 0 ? (
                 filteredExercises.map((exercise) => (
@@ -164,76 +155,69 @@ const CreateProgrammedExerciseModal: React.FC<CreateProgrammedExerciseModalProps
             </select>
           </div>
 
-          {/* Sets & Reps */}
           <div className="flex gap-2">
             <div className="flex-1">
-              <label className="block mb-1 text-sm font-medium text-gray-200">
-                Sets
-              </label>
+              <label className="block mb-1 text-sm font-medium text-text1">Sets</label>
               <input
                 type="number"
                 value={sets}
                 onChange={(e) => setSets(Number(e.target.value))}
-                className="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
+                className="w-full p-2 rounded-md bg-bg3 text-text1 focus:ring-2 focus:ring-button1"
                 required
+                disabled={saving}
               />
             </div>
-
             <div className="flex-1">
-              <label className="block mb-1 text-sm font-medium text-gray-200">
-                Reps
-              </label>
+              <label className="block mb-1 text-sm font-medium text-text1">Reps</label>
               <input
                 type="number"
                 value={reps}
                 onChange={(e) => setReps(Number(e.target.value))}
-                className="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
+                className="w-full p-2 rounded-md bg-bg3 text-text1 focus:ring-2 focus:ring-button1"
                 required
+                disabled={saving}
               />
             </div>
           </div>
 
-          {/* Rest Time */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-200">
-              Rest Time (seconds)
-            </label>
+            <label className="block mb-1 text-sm font-medium text-text1">Rest Time (seconds)</label>
             <input
               type="number"
               value={restTime}
               onChange={(e) => setRestTime(Number(e.target.value))}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:ring-2 focus:ring-button1"
               required
+              disabled={saving}
             />
           </div>
 
-          {/* Notes */}
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-200">
-              Notes
-            </label>
+            <label className="block mb-1 text-sm font-medium text-text1">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:ring-2 focus:ring-button1"
               placeholder="Optional notes..."
+              disabled={saving}
             />
           </div>
 
-          {/* Buttons */}
           <div className="flex justify-end gap-2 mt-4">
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+              className="bg-bg4 hover:bg-bg3 text-text1 px-4 py-2 rounded-md"
+              disabled={saving}
             >
               Cancel
             </button>
             <button
               type="submit"
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+              className="bg-button1 hover:bg-button2 text-text1 px-4 py-2 rounded-md"
+              disabled={saving}
             >
-              {isEditMode ? "Save Changes" : "Create"}
+              {saving ? "Saving..." : isEditMode ? "Save Changes" : "Create"}
             </button>
           </div>
         </form>

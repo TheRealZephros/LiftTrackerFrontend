@@ -1,80 +1,109 @@
 import React, { useState } from "react";
-import { ProgramDayCreateModel } from "../../../Models/TrainingProgram";
+import { toast } from "react-toastify";
+import { ProgramDayCreateModel, ProgramDayUpdateModel, ProgramDayModel } from "../../../Models/TrainingProgram";
+import { useTrainingProgramService } from "../../../Services/TrainingProgramService";
 
 interface CreateProgramDayModalProps {
   onClose: () => void;
-  onCreate: (day: ProgramDayCreateModel) => void;
   trainingProgramId: number;
   nextPosition: number;
+  refresh?: () => Promise<void>;
+  existingDay?: ProgramDayModel; // optional for edit
 }
 
 const CreateProgramDayModal: React.FC<CreateProgramDayModalProps> = ({
   onClose,
-  onCreate,
   trainingProgramId,
   nextPosition,
+  refresh,
+  existingDay,
 }) => {
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [notes, setNotes] = useState("");
+  const isEditMode = !!existingDay;
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  const [name, setName] = useState(existingDay?.name || "");
+  const [description, setDescription] = useState(existingDay?.description || "");
+  const [notes, setNotes] = useState(existingDay?.notes || "");
+  const [loading, setLoading] = useState(false);
 
-    if (!name.trim()) {
-      alert("Name is required");
-      return;
+  const { createDay, updateDay } = useTrainingProgramService();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  if (!name.trim()) {
+    toast.error("Name is required", { theme: "dark" });
+    return;
+  }
+
+  setLoading(true);
+  try {
+    if (isEditMode && existingDay) {
+      const updatePayload: ProgramDayUpdateModel = {
+        name,
+        description,
+        notes,
+        position: nextPosition,
+      };
+      await updateDay(existingDay.id, updatePayload);
+      toast.success("Program day updated!", { theme: "dark" });
+    } else {
+      const createPayload: ProgramDayCreateModel = {
+        trainingProgramId,
+        name,
+        position: nextPosition,
+        description,
+        notes,
+      };
+      await createDay(createPayload);
+      toast.success("Program day created!", { theme: "dark" });
     }
 
-    const dayData: ProgramDayCreateModel = {
-      trainingProgramId,
-      name,
-      position: nextPosition,
-      description,
-      notes,
-    };
-
-    onCreate(dayData);
-  };
+    if (refresh) await refresh();
+    onClose();
+  } catch (err) {
+    console.error(err);
+    toast.error("Failed to save program day", { theme: "dark" });
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-gray-800 p-6 rounded-lg w-full max-w-md shadow-lg">
-        <h2 className="text-xl font-semibold mb-4">Add Program Day</h2>
+    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50 p-4">
+      <div className="bg-bg2 p-6 rounded-xl w-full max-w-md shadow-lg overflow-y-auto max-h-[80vh]">
+        <h2 className="text-xl font-semibold mb-4 text-text1">
+          {isEditMode ? "Edit Program Day" : "Add Program Day"}
+        </h2>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-200">
-              Name
-            </label>
+            <label className="block mb-1 text-sm font-medium text-text1">Name</label>
             <input
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:outline-none focus:ring-2 focus:ring-button1"
               required
+              disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-200">
-              Description
-            </label>
+            <label className="block mb-1 text-sm font-medium text-text1">Description</label>
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:outline-none focus:ring-2 focus:ring-button1"
+              disabled={loading}
             />
           </div>
 
           <div>
-            <label className="block mb-1 text-sm font-medium text-gray-200">
-              Notes
-            </label>
+            <label className="block mb-1 text-sm font-medium text-text1">Notes</label>
             <textarea
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full p-2 rounded-md bg-gray-700 text-white focus:outline-none focus:ring-2 focus:ring-yellow-500"
+              className="w-full p-2 rounded-md bg-bg3 text-text1 focus:outline-none focus:ring-2 focus:ring-button1"
+              disabled={loading}
             />
           </div>
 
@@ -82,16 +111,17 @@ const CreateProgramDayModal: React.FC<CreateProgramDayModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md"
+              className="bg-bg4 hover:bg-bg3 text-text1 px-4 py-2 rounded-md"
+              disabled={loading}
             >
               Cancel
             </button>
-
             <button
               type="submit"
-              className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-md"
+              className="bg-button1 hover:bg-button2 text-text1 px-4 py-2 rounded-md"
+              disabled={loading}
             >
-              Create Day
+              {loading ? "Saving..." : isEditMode ? "Save Changes" : "Create Day"}
             </button>
           </div>
         </form>

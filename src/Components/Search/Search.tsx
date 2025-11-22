@@ -8,14 +8,14 @@ type SearchProps = {
 
 const Search: React.FC<SearchProps> = ({search, handleSearchChange, onSearchSubmit}: SearchProps) : JSX.Element => {
     return (
-    <section className="relative bg-gray-900">
+    <section className="relative bg-bg1">
       <div className="max-w-4xl mx-auto p-6 space-y-6">
         <form
-          className="form relative flex flex-col w-full p-5 space-y-4 bg-yellow-500 hover:bg-yellow-600 rounded-lg md:flex-row md:space-y-0 md:space-x-3"
+          className="form relative flex flex-col w-full p-5 space-y-4 bg-button1 hover:bg-button2 rounded-lg md:flex-row md:space-y-0 md:space-x-3"
           onSubmit={onSearchSubmit}
         >
           <input
-            className="bg-gray-800 flex-1 p-3 border-2 border-gray-600 rounded-lg placeholder-gray-400 focus:outline-none text-white"
+            className="bg-bg2 flex-1 p-3 border-2 border-bg4 rounded-lg placeholder-text3 focus:outline-none text-text1"
             id="search-input"
             placeholder="Search companies"
             value={search}

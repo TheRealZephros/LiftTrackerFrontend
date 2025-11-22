@@ -8,7 +8,7 @@ import { UserProvider } from './Context/useAuth';
 
 function App() {
   return (
-    <div className="App bg-gray-900 min-h-screen text-white">
+    <div className="App bg-bg1 min-h-screen text-text1">
       <UserProvider>
         <Navbar />
         <Outlet />

@@ -13,14 +13,14 @@ const Hero = (props: HeroProps) => {
           <h1 className="text-5xl font-bold text-center lg:text-6xl lg:max-w-md lg:text-left">
             Start Tracking your Lifts Today!
           </h1>
-          <p className="text-2xl text-center text-gray-400 lg:max-w-md lg:text-left">
+          <p className="text-2xl text-center text-text3 lg:max-w-md lg:text-left">
             LiftTracker is a free and open-source web application that helps you
             track your lifts and progress over time.
           </p>
           <div className="mx-auto lg:mx-0">
             <Link
                 to="/search"
-                className="py-5 px-10 text-2xl font-bold text-white bg-lightGreen rounded lg:py-4 hover:opacity-70"
+                className="py-5 px-10 text-2xl font-bold text-text1 bg-lightGreen rounded lg:py-4 hover:opacity-70"
             >
               Get Started
             </Link>

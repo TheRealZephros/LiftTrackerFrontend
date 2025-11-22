@@ -40,7 +40,7 @@ const ExerciseLinkHover: React.FC<{ exercise: ExerciseModel }> = ({ exercise }) 
     <div className="relative inline-block">
       <Link
         to={`/exercises/${exercise.id}`}
-        className="text-yellow-400 hover:underline font-medium"
+        className="text-text2 hover:underline font-medium"
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
         onMouseMove={handleMouseMove}
@@ -59,8 +59,8 @@ const ExerciseLinkHover: React.FC<{ exercise: ExerciseModel }> = ({ exercise }) 
               pointerEvents: "none",
             }}
             className="
-              bg-gray-800 border border-gray-700 
-              text-gray-200 rounded-lg shadow-md 
+              bg-bg2 border border-bg3 
+              text-text1 rounded-lg shadow-md 
               p-4 w-max max-w-[90vw]
               backdrop-blur-sm
               transition-transform transform-gpu scale-100
@@ -89,7 +89,7 @@ export const programmedExerciseConfig = [
     label: "Exercise",
     render: (exercise: ProgrammedExerciseModel & { exercise?: ExerciseModel }) => {
       if (!exercise.exercise) {
-        return <span className="text-gray-400 italic">Unknown exercise</span>;
+        return <span className="text-text3 italic">Unknown exercise</span>;
       }
       return <ExerciseLinkHover exercise={exercise.exercise} />;
     },
@@ -109,6 +109,6 @@ export const programmedExerciseConfig = [
   {
     label: "Notes",
     render: (exercise: ProgrammedExerciseModel) =>
-      exercise.notes || <span className="text-gray-400 italic">No notes</span>,
+      exercise.notes || <span className="text-text3 italic">No notes</span>,
   },
 ];

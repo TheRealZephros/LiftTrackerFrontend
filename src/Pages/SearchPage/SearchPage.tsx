@@ -1,10 +1,9 @@
-import React, { ChangeEvent, SyntheticEvent } from 'react'
-import Navbar from '../../Components/Navbar/Navbar'
-import ListPortfolio from '../../Components/Portfolio/ListPortfolio/ListPortfolio'
-import Search from '../../Components/Search/Search'
-import CardList from '../../Components/CardList/CardList'
-import { searchCompanies } from '../../api'
-import { CompanySearch } from '../../company'
+// import React, { ChangeEvent, SyntheticEvent } from 'react'
+// import Navbar from '../../Components/Navbar/Navbar'
+// import ListPortfolio from '../../Components/Portfolio/ListPortfolio/ListPortfolio'
+// import Search from '../../Components/Search/Search'
+// import CardList from '../../Components/CardList/CardList'
+// import { CompanySearch } from '../../company'
 
 interface SearchPageProps {
 

@@ -10,7 +10,7 @@ interface CompanyPageProps {
 const HomePage = () => {
     const {isLoggedIn, user, logout} = useAuth();
   return (
-    <div className='bg-gray-900 min-h-screen text-white'>
+    <div className='bg-bg1 min-h-screen text-text1'>
         {isLoggedIn() ? (
           <>
             <Link to={'/programs'} className='block max-w-md mx-auto mt-10 min-w-[400px] max-w-md'>

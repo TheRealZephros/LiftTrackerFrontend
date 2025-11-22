@@ -1,168 +1,92 @@
-import axios from "axios";
-import { handleError } from "../Helpers/ErrorHandler";
-import { TrainingProgramModel, ProgramDayModel, ProgrammedExerciseModel, TrainingProgramAllModel, TrainingProgramUpdateModel, ProgramDayCreateModel, ProgramDayUpdateModel, ProgrammedExerciseCreateModel } from "../Models/TrainingProgram";
+import { useAxiosClient } from "../Api/AxiosClient";
+import { 
+    TrainingProgramModel,
+    ProgramDayModel,
+    ProgrammedExerciseModel,
+    TrainingProgramAllModel,
+    TrainingProgramUpdateModel,
+    ProgramDayCreateModel,
+    ProgramDayUpdateModel,
+    ProgrammedExerciseCreateModel
+} from "../Models/TrainingProgram";
 
-const api = "https://localhost:7080/api/programs/";
+export const useTrainingProgramService = () => {
+    const api = useAxiosClient();
+    const base = "/programs/";
 
-export const getAllTrainingPrograms = async (): Promise<TrainingProgramAllModel[]> => {
-    try {
-        const data = await axios.get<TrainingProgramAllModel[]>(api);
-        return data.data;
-    } catch (error) {
-        handleError(error);
-        console.error("Error fetching training programs:", error);
-        throw error;
-    }
-};
+    return {
 
-export const getTrainingProgramById = async (programId: string): Promise<TrainingProgramModel> => {
-    try {
-        const { data } = await axios.get<TrainingProgramModel>(api + `${programId}`);
-        return data;
-    } catch (error) {
-        handleError(error);
-        console.error("Error fetching training programs:", error);
-        throw error;
-    }
-};
+        getAll: async (): Promise<TrainingProgramAllModel[]> => {
+            const { data } = await api.get(base);
+            return data;
+        },
 
-export const getProgramDaysByProgramId = async (programId: string): Promise<ProgramDayModel[]> => {
-    try {
-        const data = await axios.get<ProgramDayModel[]>(api + `days/program/${programId}`);
-        return data.data;
-    } catch (error) {
-        handleError(error);
-        console.error("Error fetching program days:", error);
-        throw error;
-    }
-};
+        getById: async (programId: string): Promise<TrainingProgramModel> => {
+            const { data } = await api.get(base + programId);
+            return data;
+        },
 
-export const getProgramDayById = async (dayId: string): Promise<ProgramDayModel> => {
-    try {
-        const data = await axios.get<ProgramDayModel>(api + `days/${dayId}`);
-        return data.data;
-    } catch (error) {
-        handleError(error);
-        console.error("Error fetching program day:", error);
-        throw error;
-    }
-};
+        getDays: async (programId: string): Promise<ProgramDayModel[]> => {
+            const { data } = await api.get(base + `days/program/${programId}`);
+            return data;
+        },
 
-export const getProgrammedExercisesByDayId = async (dayId: string): Promise<ProgrammedExerciseModel[]> => {
-    try {
-        const data = await axios.get<ProgrammedExerciseModel[]>(api + `days/${dayId}/exercises`);
-        return data.data;
-    } catch (error) {
-        handleError(error);
-        console.error("Error fetching programmed exercises:", error);
-        throw error;
-    }
-};
+        getDayById: async (dayId: string): Promise<ProgramDayModel> => {
+            const { data } = await api.get(base + `days/${dayId}`);
+            return data;
+        },
 
-export const getProgrammedExerciseById = async (exerciseId: string): Promise<ProgrammedExerciseModel> => {
-    try {
-        const data = await axios.get<ProgrammedExerciseModel>(api + `exercises/${exerciseId}`);
-        return data.data;
-    } catch (error) {
-        handleError(error);
-        console.error("Error fetching programmed exercise:", error);
-        throw error;
-    }
-};
+        getExercisesByDay: async (dayId: string): Promise<ProgrammedExerciseModel[]> => {
+            const { data } = await api.get(base + `days/${dayId}/exercises`);
+            return data;
+        },
 
-export const createTrainingProgram = async (program: {
-  name: string;
-  description: string;
-  isWeekDaySynced: boolean;
-}) => {
-  try {
-    const response = await axios.post(api + "create", program);
-    return response.data;
-  } catch (error) {
-    handleError(error);
-    console.error("Error creating training program:", error);
-    throw error;
-  }
-};
+        getExerciseById: async (exerciseId: string): Promise<ProgrammedExerciseModel> => {
+            const { data } = await api.get(base + `exercises/${exerciseId}`);
+            return data;
+        },
 
-export const createProgramDay = async (day: ProgramDayCreateModel) => {
-  try {
-    const response = await axios.post(api + `days/create`, day);
-    return response.data;
-  } catch (error) {
-    handleError(error);
-    console.error("Error creating program day:", error);
-    throw error;
-  }
-};
+        createProgram: async (program: { 
+            name: string; 
+            description: string; 
+            isWeekDaySynced: boolean; 
+        }) => {
+            const { data } = await api.post(base + "create", program);
+            return data;
+        },
 
-export const createProgrammedExercise = async (exercise: ProgrammedExerciseCreateModel ) => {
-    try {
-        const response = await axios.post(api + `exercises/create`, exercise);
-        return response.data;
-    } catch (error) {
-        handleError(error);
-        console.error("Error creating programmed exercise:", error);
-        throw error;
-    }
-};
+        createDay: async (day: ProgramDayCreateModel) => {
+            const { data } = await api.post(base + "days/create", day);
+            return data;
+        },
 
-export const updateTrainingProgram = async (programId: number, updatedProgram: TrainingProgramUpdateModel): Promise<void> => {
-  try {
-    await axios.put(api + `update/${programId}`, updatedProgram);
-  } catch (error) {
-    handleError(error);
-    console.error("Error updating training program:", error);
-    throw error;
-  }
-};
+        createExercise: async (exercise: ProgrammedExerciseCreateModel) => {
+            const { data } = await api.post(base + "exercises/create", exercise);
+            return data;
+        },
 
-export const updateProgramDay = async (dayId: number, updatedDay: ProgramDayUpdateModel): Promise<void> => {
-  try {
-    await axios.put(api + `update/days/${dayId}`, updatedDay);
-  } catch (error) {
-    handleError(error);
-    console.error("Error updating program day:", error);
-    throw error;
-  }
-};
+        updateProgram: async (programId: number, updated: TrainingProgramUpdateModel) => {
+            await api.put(base + `update/${programId}`, updated);
+        },
 
-export const updateProgrammedExercise = async (exerciseId: number, updatedExercise: ProgrammedExerciseCreateModel): Promise<void> => {
-    try {
-        await axios.put(api + `update/exercises/${exerciseId}`, updatedExercise);
-    } catch (error) {
-        handleError(error);
-        console.error("Error updating programmed exercise:", error);
-        throw error;
-    }
-};
+        updateDay: async (dayId: number, updated: ProgramDayUpdateModel) => {
+            await api.put(base + `update/days/${dayId}`, updated);
+        },
 
-export const deleteTrainingProgram = async (programId: number): Promise<void> => {
-    try {
-        await axios.delete(api + `delete/${programId}`);
-    } catch (error) {
-        handleError(error);
-        console.error("Error deleting training program:", error);
-        throw error;
-    }
-};
+        updateExercise: async (exerciseId: number, updated: ProgrammedExerciseCreateModel) => {
+            await api.put(base + `update/exercises/${exerciseId}`, updated);
+        },
 
-export const deleteProgramDay = async (dayId: number): Promise<void> => {
-  try {
-    await axios.delete(api + `delete/days/${dayId}`);
-  } catch (error) {
-    handleError(error);
-    console.error("Error deleting program day:", error);
-    throw error;
-  }
-};
+        deleteProgram: async (programId: number) => {
+            await api.delete(base + `delete/${programId}`);
+        },
 
-export const deleteProgrammedExercise = async (exerciseId: number): Promise<void> => {
-    try {
-        await axios.delete(api + `delete/exercises/${exerciseId}`);
-    } catch (error) {
-        handleError(error);
-        console.error("Error deleting programmed exercise:", error);
-        throw error;
-    }
+        deleteDay: async (dayId: number) => {
+            await api.delete(base + `delete/days/${dayId}`);
+        },
+
+        deleteExercise: async (exerciseId: number) => {
+            await api.delete(base + `delete/exercises/${exerciseId}`);
+        }
+    };
 };

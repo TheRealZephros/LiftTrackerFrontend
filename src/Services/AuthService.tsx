@@ -2,13 +2,14 @@ import axios from "axios";
 import { handleError } from "../Helpers/ErrorHandler";
 import { UserProfileToken } from "../Models/User";
 
-const api = "https://localhost:7080/api/";
+const api = "https://localhost:7080/api/user/";
 
-export const loginAPI = async (email: string, password: string) => {
-    try{
-        const data = await axios.post<UserProfileToken>(api + "user/login", {
-            email: email,
-            password: password
+// Login
+export const loginAPI = async (email: string, password: string): Promise<UserProfileToken> => {
+    try {
+        const { data } = await axios.post<UserProfileToken>(api + "login", {
+            email,
+            password,
         });
         return data;
     } catch (error) {
@@ -18,17 +19,30 @@ export const loginAPI = async (email: string, password: string) => {
     }
 };
 
-export const registerAPI = async (email: string, userName: string, password: string) => {
-    try{
-        const data = await axios.post<UserProfileToken>(api + "user/register", {
-            email: email,
-            userName: userName,
-            password: password
+// Register
+export const registerAPI = async (email: string, userName: string, password: string): Promise<UserProfileToken> => {
+    try {
+        const { data } = await axios.post<UserProfileToken>(api + "register", {
+            email,
+            userName,
+            password,
         });
         return data;
     } catch (error) {
         handleError(error);
         console.error("Error during registration:", error);
+        throw error;
+    }
+};
+
+// Refresh token
+export const refreshTokenAPI = async (refreshToken: string): Promise<UserProfileToken> => {
+    try {
+        const { data } = await axios.post<UserProfileToken>(api + "refresh", { refreshToken });
+        return data;
+    } catch (error) {
+        handleError(error);
+        console.error("Error refreshing token:", error);
         throw error;
     }
 };

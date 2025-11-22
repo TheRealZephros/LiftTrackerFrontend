@@ -9,8 +9,8 @@ const Tile = ({ title, subTitle }: TileProps) => {
   return (
     <div
       className="
-        bg-gray-800 text-white 
-        border border-gray-700 
+        bg-bg2 text-text1 
+        border border-bg3 
         rounded-xl shadow-md 
         p-4 m-2
         min-w-[200px] max-w-[300px] 
@@ -19,14 +19,14 @@ const Tile = ({ title, subTitle }: TileProps) => {
       "
     >
       {/* Title */}
-      <h2 className="text-lg font-semibold text-yellow-400 truncate">
+      <h2 className="text-lg font-semibold text-text2 truncate">
         {title}
       </h2>
 
       {/* Subtitle */}
       <p
         className="
-          text-gray-300 mt-2 text-sm leading-relaxed
+          text-text1 mt-2 text-sm leading-relaxed
           break-words whitespace-normal
         "
         style={{ maxWidth: "100%" }}

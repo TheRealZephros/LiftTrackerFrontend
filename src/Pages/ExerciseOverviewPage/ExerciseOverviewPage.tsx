@@ -1,10 +1,5 @@
 import React, { useEffect, useState } from "react";
-import {
-  getAllExercises,
-  createExercise,
-  updateExercise,
-  deleteExercise,
-} from "../../Services/ExerciseService";
+import { useExerciseService } from "../../Services/ExerciseService";
 import { ExerciseModel, ExerciseCreateModel } from "../../Models/ExerciseModel";
 import { toast } from "react-toastify";
 import { FiPlus, FiEdit2, FiTrash2 } from "react-icons/fi";
@@ -13,16 +8,19 @@ import CreateExerciseModal from "../../Components/Modals/CreateExerciseModal/Cre
 import { Link } from "react-router-dom";
 
 const ExerciseOverviewPage = () => {
+  const { getAll, create, update, delete: remove } = useExerciseService();
+
   const [exercises, setExercises] = useState<ExerciseModel[]>([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
-  const [exerciseToEdit, setExerciseToEdit] = useState<ExerciseModel | null>(null);
+  const [exerciseToEdit, setExerciseToEdit] =
+    useState<ExerciseModel | null>(null);
 
   // Fetch exercises
   const fetchExercises = async () => {
     setLoading(true);
     try {
-      const data = await getAllExercises();
+      const data = await getAll();
       setExercises(data);
     } catch (error) {
       console.error("Error loading exercises:", error);
@@ -39,8 +37,17 @@ const ExerciseOverviewPage = () => {
   // CREATE
   const handleCreate = async (exercise: ExerciseCreateModel) => {
     try {
-      const created = await createExercise(exercise);
-      setExercises((prev) => [...prev, created]);
+      const createdResponse = await create(exercise);
+
+      // backend returns { id: X }
+      const newExercise: ExerciseModel = {
+        ...exercise,
+        id: createdResponse.id,
+        isUsermade: true,
+        userId: createdResponse.userId,
+      };
+
+      setExercises((prev) => [...prev, newExercise]);
       toast.success("Exercise created successfully!", { theme: "dark" });
       setShowModal(false);
     } catch (error) {
@@ -53,12 +60,15 @@ const ExerciseOverviewPage = () => {
   const handleUpdate = async (exercise: ExerciseCreateModel) => {
     if (!exerciseToEdit) return;
     try {
-      await updateExercise(exerciseToEdit.id, exercise);
+      await update(exerciseToEdit.id, exercise);
+
+      // merge local state manually because API returns void
       setExercises((prev) =>
         prev.map((ex) =>
           ex.id === exerciseToEdit.id ? { ...ex, ...exercise } : ex
         )
       );
+
       toast.success("Exercise updated successfully!", { theme: "dark" });
       setExerciseToEdit(null);
       setShowModal(false);
@@ -72,7 +82,7 @@ const ExerciseOverviewPage = () => {
   const handleDelete = async (id: number) => {
     if (!window.confirm("Are you sure you want to delete this exercise?")) return;
     try {
-      await deleteExercise(id);
+      await remove(id);
       setExercises((prev) => prev.filter((e) => e.id !== id));
       toast.success("Exercise deleted!", { theme: "dark" });
     } catch (error) {
@@ -81,43 +91,39 @@ const ExerciseOverviewPage = () => {
     }
   };
 
-  // UI Rendering
   if (loading) return <Spinner />;
 
   return (
     <div className="p-4 space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-start gap-4">
-        <h2 className="text-2xl font-semibold text-white">Exercises</h2>
+      <div className="flex items-center justify-start gap-4">
+        <h2 className="text-2xl font-semibold text-text1">Exercises</h2>
         <button
-            onClick={() => {
+          onClick={() => {
             setExerciseToEdit(null);
             setShowModal(true);
-            }}
-            className="p-1 text-yellow-400 hover:text-yellow-500 transition"
-            title="Add new exercise"
+          }}
+          className="p-1 text-button1 hover:text-button2 transition"
+          title="Add new exercise"
         >
-            {FiPlus({ size: 18 })}
-            
+          {FiPlus({ size: 18 })}
         </button>
-        </div>
+      </div>
 
-      {/* Exercise Grid */}
       {exercises.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {exercises.map((exercise) => (
             <div
               key={exercise.id}
-              className="bg-gray-800 rounded-lg p-4 shadow-md border border-gray-700 hover:shadow-lg transition-shadow flex flex-col justify-between"
+              className="bg-bg2 rounded-lg p-4 shadow-md border border-bg3 hover:shadow-lg transition-shadow flex flex-col justify-between"
             >
               <div>
-                  <Link
+                <Link
                   to={`/exercises/${exercise.id}`}
-                  className="text-lg font-semibold text-yellow-400 hover:underline font-medium"
-                  >
-                    {exercise.name}
-                    </Link>
-                <p className="text-gray-300 text-sm mt-2 line-clamp-3">
+                  className="text-lg font-semibold text-text2 hover:underline font-medium"
+                >
+                  {exercise.name}
+                </Link>
+                <p className="text-text3 text-sm mt-2 line-clamp-3">
                   {exercise.description || "No description provided."}
                 </p>
               </div>
@@ -126,8 +132,8 @@ const ExerciseOverviewPage = () => {
                 <span
                   className={`px-2 py-1 text-xs rounded-full ${
                     exercise.isUsermade
-                      ? "bg-green-700 text-green-300"
-                      : "bg-blue-700 text-blue-300"
+                      ? "bg-userMadeBg text-userMadeText"
+                      : "bg-systemMadeBg text-systemMadeText"
                   }`}
                 >
                   {exercise.isUsermade ? "User" : "System"}
@@ -139,7 +145,7 @@ const ExerciseOverviewPage = () => {
                       setExerciseToEdit(exercise);
                       setShowModal(true);
                     }}
-                    className="p-1 text-blue-400 hover:text-blue-500 transition"
+                    className="p-1 text-buttonEdit1 hover:text-buttonEdit2 transition"
                     title="Edit Exercise"
                   >
                     {FiEdit2({ size: 18 })}
@@ -148,7 +154,7 @@ const ExerciseOverviewPage = () => {
                   {exercise.isUsermade && (
                     <button
                       onClick={() => handleDelete(exercise.id)}
-                      className="p-1 text-red-400 hover:text-red-500 transition"
+                      className="p-1 text-buttonDelete1 hover:text-buttonDelete2 transition"
                       title="Delete Exercise"
                     >
                       {FiTrash2({ size: 18 })}
@@ -160,19 +166,17 @@ const ExerciseOverviewPage = () => {
           ))}
         </div>
       ) : (
-        <p className="text-gray-400 italic text-center mt-8">
+        <p className="text-text3 italic text-center mt-8">
           No exercises available.
         </p>
       )}
 
-      {/* Create/Edit Modal */}
       {showModal && (
         <CreateExerciseModal
           onClose={() => {
             setShowModal(false);
             setExerciseToEdit(null);
           }}
-          onSave={exerciseToEdit ? handleUpdate : handleCreate}
           existingExercise={exerciseToEdit || undefined}
         />
       )}

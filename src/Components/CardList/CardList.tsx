@@ -26,7 +26,7 @@ const ProgramCardList: React.FC<ProgramCardListProps> = ({
             />
           ))
         ) : (
-          <p className="text-center text-gray-400 italic text-lg mt-8 col-span-full">
+          <p className="text-center text-text3 italic text-lg mt-8 col-span-full">
             No programs found.
           </p>
         )}

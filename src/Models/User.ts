@@ -1,9 +1,14 @@
 export type UserProfileToken = {
-    email : string,
-    userName: string,
-    token: string
-}
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    email: string;
+    userName: string;
+  };
+};
+
+
 export type UserProfile = {
-    email : string,
-    userName: string
-}
+    email: string;
+    userName: string;
+};
